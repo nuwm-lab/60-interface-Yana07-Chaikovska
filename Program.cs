@@ -7,24 +7,38 @@ namespace Shapes3D
     // ============================================
     public interface IShape3D
     {
-        void SetParameters(double[] parameters);
+        void SetParameters(double bx, double by, double bz, params double[] parameters);
         void PrintParameters();
         double Volume();
     }
 
     // ============================================
-    //         АБСТРАКТНИЙ БАЗОВИЙ КЛАС
+    //          АБСТРАКТНИЙ БАЗОВИЙ КЛАС
     // ============================================
     public abstract class Solid : IShape3D
     {
-        public abstract void SetParameters(double[] parameters);
+        protected double _bx, _by, _bz; // центр фігури
+
+        public Solid() { }
+
+        public Solid(double bx, double by, double bz)
+        {
+            _bx = bx;
+            _by = by;
+            _bz = bz;
+        }
+
+        public abstract void SetParameters(double bx, double by, double bz, params double[] parameters);
 
         public virtual void PrintParameters()
         {
-            Console.WriteLine("3D shape parameters:");
+            Console.WriteLine($"Center: ({_bx}, {_by}, {_bz})");
         }
 
         public abstract double Volume();
+
+        // За вимогою можна додати деструктор
+        ~Solid() { }
     }
 
     // ============================================
@@ -36,34 +50,42 @@ namespace Shapes3D
 
         public Sphere() { }
 
-        public Sphere(double radius)
+        public Sphere(double bx, double by, double bz, double radius)
+            : base(bx, by, bz)
         {
             if (radius <= 0)
                 throw new ArgumentException("Radius must be positive.");
-
             _radius = radius;
         }
 
-        public override void SetParameters(double[] parameters)
+        public override void SetParameters(double bx, double by, double bz, params double[] parameters)
         {
-            if (parameters.Length != 1)
+            if (parameters == null || parameters.Length != 1)
                 throw new ArgumentException("Sphere requires 1 parameter: radius.");
 
             if (parameters[0] <= 0)
                 throw new ArgumentException("Radius must be positive.");
+
+            _bx = bx;
+            _by = by;
+            _bz = bz;
 
             _radius = parameters[0];
         }
 
         public override void PrintParameters()
         {
-            Console.WriteLine($"Sphere: radius = {_radius}");
+            Console.WriteLine("Sphere:");
+            base.PrintParameters();
+            Console.WriteLine($"Radius: {_radius}");
         }
 
         public override double Volume()
         {
             return (4.0 / 3.0) * Math.PI * Math.Pow(_radius, 3);
         }
+
+        ~Sphere() { }
     }
 
     // ============================================
@@ -75,23 +97,29 @@ namespace Shapes3D
 
         public Ellipsoid() { }
 
-        public Ellipsoid(double a, double b, double c)
+        public Ellipsoid(double bx, double by, double bz,
+                         double a, double b, double c)
+            : base(bx, by, bz)
         {
             if (a <= 0  b <= 0  c <= 0)
-                throw new ArgumentException("All axes must be positive.");
+                throw new ArgumentException("Axes must be positive.");
 
             _a = a;
             _b = b;
             _c = c;
         }
 
-        public override void SetParameters(double[] parameters)
+        public override void SetParameters(double bx, double by, double bz, params double[] parameters)
         {
-            if (parameters.Length != 3)
-                throw new ArgumentException("Ellipsoid requires 3 parameters: a, b, c.");
+            if (parameters == null || parameters.Length != 3)
+                throw new ArgumentException("Ellipsoid requires parameters: a, b, c.");
 
             if (parameters[0] <= 0  parameters[1] <= 0  parameters[2] <= 0)
-                throw new ArgumentException("All axes must be positive.");
+                throw new ArgumentException("Axes must be positive.");
+
+            _bx = bx;
+            _by = by;
+            _bz = bz;
 
             _a = parameters[0];
             _b = parameters[1];
@@ -100,31 +128,34 @@ namespace Shapes3D
 
         public override void PrintParameters()
         {
-            Console.WriteLine($"Ellipsoid: a = {_a}, b = {_b}, c = {_c}");
+            Console.WriteLine("Ellipsoid:");
+            base.PrintParameters();
+            Console.WriteLine($"Axes: a = {_a}, b = {_b}, c = {_c}");
         }
 
         public override double Volume()
         {
             return (4.0 / 3.0) * Math.PI * _a * _b * _c;
         }
+
+        ~Ellipsoid() { }
     }
 
     // ============================================
-    //                      MAIN
-    // ============================================
+    //                    MAIN// ============================================
     internal class Program
     {
         static void Main()
         {
             Console.WriteLine("=== Sphere ===");
             IShape3D sphere = new Sphere();
-            sphere.SetParameters(new double[] { 5 });
+            sphere.SetParameters(1, 2, 3, 5); // центр (1,2,3), радіус 5
             sphere.PrintParameters();
             Console.WriteLine($"Volume = {sphere.Volume():F4}");
 
             Console.WriteLine("\n=== Ellipsoid ===");
             IShape3D ellipsoid = new Ellipsoid();
-            ellipsoid.SetParameters(new double[] { 2, 3, 4 });
+            ellipsoid.SetParameters(0, 0, 0, 2, 3, 4); // центр (0,0,0), осі 2,3,4
             ellipsoid.PrintParameters();
             Console.WriteLine($"Volume = {ellipsoid.Volume():F4}");
 
