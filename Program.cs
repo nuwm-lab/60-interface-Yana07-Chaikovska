@@ -1,125 +1,134 @@
-﻿using System;
+using System;
 
-namespace AbstractsANDInterfaces
+namespace Shapes3D
 {
-    // --------------------------
-    //     ІНТЕРФЕЙС
-    // --------------------------
-    public interface IFractionFunction
+    // ============================================
+    //                ІНТЕРФЕЙС
+    // ============================================
+    public interface IShape3D
     {
-        void SetCoefficients(double[] numerator, double[] denominator);
-        void PrintCoefficients();
-        double ValueAt(double x);
+        void SetParameters(double[] parameters);
+        void PrintParameters();
+        double Volume();
     }
 
-    // ---------------------------------------
-    //   АБСТРАКТНИЙ КЛАС ДРОБОВО-ЛІНІЙНОЇ ФУНКЦІЇ
-    // ---------------------------------------
-    public abstract class FractionLinear : IFractionFunction
+    // ============================================
+    //         АБСТРАКТНИЙ БАЗОВИЙ КЛАС
+    // ============================================
+    public abstract class Solid : IShape3D
     {
-        protected double a1, a0;
-        protected double b1, b0;
+        public abstract void SetParameters(double[] parameters);
 
-        public FractionLinear() { }
-
-        public abstract void SetCoefficients(double[] numerator, double[] denominator);
-
-        public virtual void PrintCoefficients()
+        public virtual void PrintParameters()
         {
-            Console.WriteLine($"Numerator:   {a1} * x + {a0}");
-            Console.WriteLine($"Denominator: {b1} * x + {b0}");
+            Console.WriteLine("3D shape parameters:");
         }
 
-        public virtual double ValueAt(double x)
-        {
-            double numerator = a1 * x + a0;
-            double denominator = b1 * x + b0;
-
-            if (denominator == 0)
-                throw new DivideByZeroException("Denominator equals zero!");
-
-            return numerator / denominator;
-        }
+        public abstract double Volume();
     }
 
-    // ---------------------------------------------------
-    //      ПОХІДНИЙ КЛАС — ДРОБОВА ФУНКЦІЯ 2-ГО ПОРЯДКУ
-    // ---------------------------------------------------
-    public class FractionQuadratic : FractionLinear
+    // ============================================
+    //                   КУЛЯ
+    // ============================================
+    public class Sphere : Solid
     {
-        protected double a2;
-        protected double b2;
+        private double _radius;
 
-        public FractionQuadratic() { }
+        public Sphere() { }
 
-        public override void SetCoefficients(double[] numerator, double[] denominator)
+        public Sphere(double radius)
         {
-            a2 = numerator[0];
-            a1 = numerator[1];
-            a0 = numerator[2];
+            if (radius <= 0)
+                throw new ArgumentException("Radius must be positive.");
 
-            b2 = denominator[0];
-            b1 = denominator[1];
-            b0 = denominator[2];
+            _radius = radius;
         }
 
-        public override void PrintCoefficients()
+        public override void SetParameters(double[] parameters)
         {
-            Console.WriteLine($"Numerator:   {a2} * x^2 + {a1} * x + {a0}");
-            Console.WriteLine($"Denominator: {b2} * x^2 + {b1} * x + {b0}");
+            if (parameters.Length != 1)
+                throw new ArgumentException("Sphere requires 1 parameter: radius.");
+
+            if (parameters[0] <= 0)
+                throw new ArgumentException("Radius must be positive.");
+
+            _radius = parameters[0];
         }
 
-        public override double ValueAt(double x)
+        public override void PrintParameters()
         {
-            double numerator = a2 * x * x + a1 * x + a0;
-            double denominator = b2 * x * x + b1 * x + b0;
+            Console.WriteLine($"Sphere: radius = {_radius}");
+        }
 
-            if (denominator == 0)
-                throw new DivideByZeroException("Denominator equals zero!");
-
-            return numerator / denominator;
+        public override double Volume()
+        {
+            return (4.0 / 3.0) * Math.PI * Math.Pow(_radius, 3);
         }
     }
 
-    // --------------------------
-    //            MAIN
-    // --------------------------
+    // ============================================
+    //                  ЕЛІПСОЇД
+    // ============================================
+    public class Ellipsoid : Solid
+    {
+        private double _a, _b, _c;
+
+        public Ellipsoid() { }
+
+        public Ellipsoid(double a, double b, double c)
+        {
+            if (a <= 0  b <= 0  c <= 0)
+                throw new ArgumentException("All axes must be positive.");
+
+            _a = a;
+            _b = b;
+            _c = c;
+        }
+
+        public override void SetParameters(double[] parameters)
+        {
+            if (parameters.Length != 3)
+                throw new ArgumentException("Ellipsoid requires 3 parameters: a, b, c.");
+
+            if (parameters[0] <= 0  parameters[1] <= 0  parameters[2] <= 0)
+                throw new ArgumentException("All axes must be positive.");
+
+            _a = parameters[0];
+            _b = parameters[1];
+            _c = parameters[2];
+        }
+
+        public override void PrintParameters()
+        {
+            Console.WriteLine($"Ellipsoid: a = {_a}, b = {_b}, c = {_c}");
+        }
+
+        public override double Volume()
+        {
+            return (4.0 / 3.0) * Math.PI * _a * _b * _c;
+        }
+    }
+
+    // ============================================
+    //                      MAIN
+    // ============================================
     internal class Program
     {
         static void Main()
         {
-            Console.WriteLine("=== Fraction Linear Function ===");
+            Console.WriteLine("=== Sphere ===");
+            IShape3D sphere = new Sphere();
+            sphere.SetParameters(new double[] { 5 });
+            sphere.PrintParameters();
+            Console.WriteLine($"Volume = {sphere.Volume():F4}");
 
-            FractionLinear f = new FractionLinearImpl();
-            f.SetCoefficients(
-                new double[] { 2, -5 },   // 2x - 5
-                new double[] { 1, 3 }     // 1x + 3
-            );
-            f.PrintCoefficients();
-            Console.WriteLine("Value at x0 = 2: " + f.ValueAt(2));
+            Console.WriteLine("\n=== Ellipsoid ===");
+            IShape3D ellipsoid = new Ellipsoid();
+            ellipsoid.SetParameters(new double[] { 2, 3, 4 });
+            ellipsoid.PrintParameters();
+            Console.WriteLine($"Volume = {ellipsoid.Volume():F4}");
 
-            Console.WriteLine("\n=== Fraction Quadratic Function ===");
-
-            FractionQuadratic fq = new FractionQuadratic();
-            fq.SetCoefficients(
-                new double[] { 1, -3, 2 },     // x² - 3x + 2
-                new double[] { 2, 0, -1 }      // 2x² - 1
-            );
-            fq.PrintCoefficients();
-            Console.WriteLine("Value at x0 = 2: " + fq.ValueAt(2));
-        }
-    }
-
-    // Реалізація абстрактного класу (для демонстрації)
-    public class FractionLinearImpl : FractionLinear
-    {
-        public override void SetCoefficients(double[] numerator, double[] denominator)
-        {
-            a1 = numerator[0];
-            a0 = numerator[1];
-
-            b1 = denominator[0];
-            b0 = denominator[1];
+            Console.WriteLine("\nDone.");
         }
     }
 }
