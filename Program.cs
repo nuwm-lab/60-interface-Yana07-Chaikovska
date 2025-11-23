@@ -1,125 +1,165 @@
 using System;
 
-namespace AbstractsANDInterfaces
+namespace Shapes3D
 {
-    // --------------------------
-    //     ІНТЕРФЕЙС
-    // --------------------------
-    public interface IFractionFunction
+    // ============================
+    //        ІНТЕРФЕЙС
+    // ============================
+    public interface IShape3D
     {
-        void SetCoefficients(double[] numerator, double[] denominator);
-        void PrintCoefficients();
-        double ValueAt(double x);
+        void SetParameters(double bx, double by, double bz, params double[] parameters);
+        void PrintParameters();
+        double Volume();
     }
 
-    // ---------------------------------------
-    //   АБСТРАКТНИЙ КЛАС ДРОБОВО-ЛІНІЙНОЇ ФУНКЦІЇ
-    // ---------------------------------------
-    public abstract class FractionLinear : IFractionFunction
+    // ============================
+    //     АБСТРАКТНИЙ КЛАС
+    // ============================
+    public abstract class Solid : IShape3D
     {
-        protected double a1, a0;
-        protected double b1, b0;
+        public double Bx { get; protected set; }
+        public double By { get; protected set; }
+        public double Bz { get; protected set; }
 
-        public FractionLinear() { }
+        protected Solid() { }
 
-        public abstract void SetCoefficients(double[] numerator, double[] denominator);
-
-        public virtual void PrintCoefficients()
+        protected Solid(double bx, double by, double bz)
         {
-            Console.WriteLine($"Numerator:   {a1} * x + {a0}");
-            Console.WriteLine($"Denominator: {b1} * x + {b0}");
+            Bx = bx;
+            By = by;
+            Bz = bz;
         }
 
-        public virtual double ValueAt(double x)
+        public abstract void SetParameters(double bx, double by, double bz, params double[] parameters);
+        public abstract double Volume();
+
+        public virtual void PrintParameters()
         {
-            double numerator = a1 * x + a0;
-            double denominator = b1 * x + b0;
-
-            if (denominator == 0)
-                throw new DivideByZeroException("Denominator equals zero!");
-
-            return numerator / denominator;
+            Console.WriteLine($"Center: ({Bx}, {By}, {Bz})");
         }
+
+        ~Solid() { } // деструктор, якщо він потрібен за вимогою викладача
     }
 
-    // ---------------------------------------------------
-    //      ПОХІДНИЙ КЛАС — ДРОБОВА ФУНКЦІЯ 2-ГО ПОРЯДКУ
-    // ---------------------------------------------------
-    public class FractionQuadratic : FractionLinear
+    // ============================
+    //           КУЛЯ
+    // ============================
+    public class Sphere : Solid
     {
-        protected double a2;
-        protected double b2;
+        public double Radius { get; private set; }
 
-        public FractionQuadratic() { }
+        public Sphere() { }
 
-        public override void SetCoefficients(double[] numerator, double[] denominator)
+        public Sphere(double bx, double by, double bz, double radius)
+            : base(bx, by, bz)
         {
-            a2 = numerator[0];
-            a1 = numerator[1];
-            a0 = numerator[2];
+            if (radius <= 0)
+                throw new ArgumentOutOfRangeException(nameof(radius), "Radius must be positive.");
 
-            b2 = denominator[0];
-            b1 = denominator[1];
-            b0 = denominator[2];
+            Radius = radius;
         }
 
-        public override void PrintCoefficients()
+        public override void SetParameters(double bx, double by, double bz, params double[] parameters)
         {
-            Console.WriteLine($"Numerator:   {a2} * x^2 + {a1} * x + {a0}");
-            Console.WriteLine($"Denominator: {b2} * x^2 + {b1} * x + {b0}");
+            if (parameters == null || parameters.Length != 1)
+                throw new ArgumentException("Sphere requires 1 parameter: radius.");
+
+            if (parameters[0] <= 0)
+                throw new ArgumentOutOfRangeException(nameof(parameters), "Radius must be positive.");
+
+            Bx = bx;
+            By = by;
+            Bz = bz;
+            Radius = parameters[0];
         }
 
-        public override double ValueAt(double x)
+        public override double Volume()
         {
-            double numerator = a2 * x * x + a1 * x + a0;
-            double denominator = b2 * x * x + b1 * x + b0;
-
-            if (denominator == 0)
-                throw new DivideByZeroException("Denominator equals zero!");
-
-            return numerator / denominator;
+            return 4.0 / 3.0 * Math.PI * Radius * Radius * Radius;
         }
+
+        public override void PrintParameters()
+        {
+            Console.WriteLine("Sphere:");
+            base.PrintParameters();
+            Console.WriteLine($"Radius: {Radius}");
+        }
+
+        ~Sphere() { }
     }
 
-    // --------------------------
+    // ============================
+    //         ЕЛІПСОЇД
+    // ============================
+    public class Ellipsoid : Solid
+    {
+        public double A { get; private set; }
+        public double BxAxis { get; private set; }
+        public double C { get; private set; }
+
+        public Ellipsoid() { }
+
+        public Ellipsoid(double bx, double by, double bz, double a, double b, double c)
+            : base(bx, by, bz)
+        {
+            if (a <= 0  b <= 0  c <= 0)
+                throw new ArgumentOutOfRangeException(nameof(a), "All axes must be positive.");
+
+            A = a;
+            BxAxis = b;
+            C = c;
+        }
+
+        public override void SetParameters(double bx, double by, double bz, params double[] parameters)
+        {
+            if (parameters == null || parameters.Length != 3)
+                throw new ArgumentException("Ellipsoid requires 3 parameters: a, b, c.");
+
+            if (parameters[0] <= 0  parameters[1] <= 0  parameters[2] <= 0)
+                throw new ArgumentOutOfRangeException(nameof(parameters), "All axes must be positive.");
+
+            Bx = bx;
+            By = by;
+            Bz = bz;
+
+            A = parameters[0];
+            BxAxis = parameters[1];
+            C = parameters[2];
+        }
+
+        public override double Volume()
+        {
+            return 4.0 / 3.0 * Math.PI * A * BxAxis * C;
+        }
+
+        public override void PrintParameters()
+        {
+            Console.WriteLine("Ellipsoid:");
+            base.PrintParameters();
+            Console.WriteLine($"Axes: a = {A}, b = {BxAxis}, c = {C}");
+        }
+
+        ~Ellipsoid() { }
+    }
+
+    // ============================
     //            MAIN
-    // --------------------------
-    internal class Program
+    // ============================
+    public static class Program
     {
         static void Main()
         {
-            Console.WriteLine("=== Fraction Linear Function ===");
+            Console.WriteLine("=== Sphere ===");
+            IShape3D sphere = new Sphere();
+            sphere.SetParameters(1, 2, 3, 5);
+            sphere.PrintParameters();
+            Console.WriteLine($"Volume = {sphere.Volume():F4}\n");
 
-            FractionLinear f = new FractionLinearImpl();
-            f.SetCoefficients(
-                new double[] { 2, -5 },   // 2x - 5
-                new double[] { 1, 3 }     // 1x + 3
-            );
-            f.PrintCoefficients();
-            Console.WriteLine("Value at x0 = 2: " + f.ValueAt(2));
-
-            Console.WriteLine("\n=== Fraction Quadratic Function ===");
-
-            FractionQuadratic fq = new FractionQuadratic();
-            fq.SetCoefficients(
-                new double[] { 1, -3, 2 },     // x² - 3x + 2
-                new double[] { 2, 0, -1 }      // 2x² - 1
-            );
-            fq.PrintCoefficients();
-            Console.WriteLine("Value at x0 = 2: " + fq.ValueAt(2));
-        }
-    }
-
-    // Реалізація абстрактного класу (для демонстрації)
-    public class FractionLinearImpl : FractionLinear
-    {
-        public override void SetCoefficients(double[] numerator, double[] denominator)
-        {
-            a1 = numerator[0];
-            a0 = numerator[1];
-
-            b1 = denominator[0];
-            b0 = denominator[1];
+            Console.WriteLine("=== Ellipsoid ===");
+            IShape3D ellipsoid = new Ellipsoid();
+            ellipsoid.SetParameters(0, 0, 0, 2, 3, 4);
+            ellipsoid.PrintParameters();
+            Console.WriteLine($"Volume = {ellipsoid.Volume():F4}\n");
         }
     }
 }
