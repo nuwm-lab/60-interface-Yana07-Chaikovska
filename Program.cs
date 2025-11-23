@@ -33,6 +33,14 @@ namespace Shapes3D
         public abstract void SetParameters(double bx, double by, double bz, params double[] values);
         public abstract double Volume();
 
+        // Метод для встановлення центру (щоб уникати дублювання)
+        protected void SetCenter(double bx, double by, double bz)
+        {
+            CenterX = bx;
+            CenterY = by;
+            CenterZ = bz;
+        }
+
         public virtual void PrintParameters()
         {
             Console.WriteLine($"Center: ({CenterX}, {CenterY}, {CenterZ})");
@@ -53,7 +61,6 @@ namespace Shapes3D
         {
             if (radius <= 0)
                 throw new ArgumentOutOfRangeException(nameof(radius), "Radius must be positive.");
-
             Radius = radius;
         }
 
@@ -65,16 +72,13 @@ namespace Shapes3D
             if (values[0] <= 0)
                 throw new ArgumentOutOfRangeException(nameof(values), "Radius must be positive.");
 
-            CenterX = bx;
-            CenterY = by;
-            CenterZ = bz;
-
+            SetCenter(bx, by, bz);
             Radius = values[0];
         }
 
         public override double Volume()
         {
-            return 4.0 / 3.0 * Math.PI * Math.Pow(Radius, 3);
+            return 4.0 / 3.0 * Math.PI * Radius * Radius * Radius; // оптимізовано без Math.Pow
         }
 
         public override void PrintParameters()
@@ -115,10 +119,7 @@ namespace Shapes3D
             if (values[0] <= 0 || values[1] <= 0 || values[2] <= 0)
                 throw new ArgumentOutOfRangeException(nameof(values), "All axes must be positive.");
 
-            CenterX = bx;
-            CenterY = by;
-            CenterZ = bz;
-
+            SetCenter(bx, by, bz);
             AxisA = values[0];
             AxisB = values[1];
             AxisC = values[2];
@@ -144,14 +145,24 @@ namespace Shapes3D
     {
         static void Main()
         {
-            Console.WriteLine("=== Sphere ===");
-            IShape3D sphere = new Sphere();
-            sphere.SetParameters(1, 2, 3, 5);
-            sphere.PrintParameters();
-            Console.WriteLine($"Volume = {sphere.Volume():F4}\n");
+            try
+            {
+                Console.WriteLine("=== Sphere ===");
+                IShape3D sphere = new Sphere();
+                sphere.SetParameters(1, 2, 3, 5);
+                sphere.PrintParameters();
+                Console.WriteLine($"Volume = {sphere.Volume():F4}\n");
 
-            Console.WriteLine("=== Ellipsoid ===");
-            IShape3D ellipsoid = new Ellipsoid();
-            ellipsoid.SetParameters(0, 0, 0, 2, 3, 4);
-            ellipsoid.PrintParameters();
-            Console.WriteLine($"Volume = {ellipsoid.Volume
+                Console.WriteLine("=== Ellipsoid ===");
+                IShape3D ellipsoid = new Ellipsoid();
+                ellipsoid.SetParameters(0, 0, 0, 2, 3, 4);
+                ellipsoid.PrintParameters();
+                Console.WriteLine($"Volume = {ellipsoid.Volume():F4}\n");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+        }
+    }
+}
