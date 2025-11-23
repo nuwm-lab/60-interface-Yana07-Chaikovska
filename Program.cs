@@ -74,7 +74,7 @@ namespace Shapes3D
 
         public override double Volume()
         {
-            return 4.0 / 3.0 * Math.PI * Radius * Radius * Radius;
+            return 4.0 / 3.0 * Math.PI * Math.Pow(Radius, 3);
         }
 
         public override void PrintParameters()
@@ -99,7 +99,7 @@ namespace Shapes3D
         public Ellipsoid(double bx, double by, double bz, double a, double b, double c)
             : base(bx, by, bz)
         {
-            if (a <= 0  b <= 0  c <= 0)
+            if (a <= 0 || b <= 0 || c <= 0)
                 throw new ArgumentOutOfRangeException(nameof(a), "All axes must be positive.");
 
             AxisA = a;
@@ -112,7 +112,7 @@ namespace Shapes3D
             if (values == null || values.Length != 3)
                 throw new ArgumentException("Ellipsoid requires 3 parameters: a, b, c.");
 
-            if (values[0] <= 0  values[1] <= 0  values[2] <= 0)
+            if (values[0] <= 0 || values[1] <= 0 || values[2] <= 0)
                 throw new ArgumentOutOfRangeException(nameof(values), "All axes must be positive.");
 
             CenterX = bx;
@@ -135,7 +135,9 @@ namespace Shapes3D
             base.PrintParameters();
             Console.WriteLine($"Axes: A = {AxisA}, B = {AxisB}, C = {AxisC}");
         }
-    }// ============================
+    }
+
+    // ============================
     //            MAIN
     // ============================
     public static class Program
@@ -152,7 +154,4 @@ namespace Shapes3D
             IShape3D ellipsoid = new Ellipsoid();
             ellipsoid.SetParameters(0, 0, 0, 2, 3, 4);
             ellipsoid.PrintParameters();
-            Console.WriteLine($"Volume = {ellipsoid.Volume():F4}\n");
-        }
-    }
-}
+            Console.WriteLine($"Volume = {ellipsoid.Volume
